@@ -1,0 +1,238 @@
+import React, { useState } from 'react';
+import { 
+  ChevronRight, 
+  ChevronLeft, 
+  Upload, 
+  CheckCircle, 
+  Info, 
+  FileText,
+  Home,
+  Users,
+  Stethoscope,
+  TrendingUp,
+  Pill,
+  HeartPulse,
+  ShieldCheck,
+  Lock,
+  FileSignature
+} from 'lucide-react';
+
+export default function App() {
+  const [currentStep, setCurrentStep] = useState(0);
+  
+  const brandColors = {
+    primary: '#1c5e52', 
+    primaryLight: '#e8f2f0',
+    text: '#4a4a4a'
+  };
+
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    address: '',
+    idCard: null,
+    residenceChanged: 'nein',
+    residenceDoc: null,
+    privacyAccepted: false,
+    authenticityConfirmed: false,
+    cuDoc: null,
+    inpsDoc: null,
+    propertyChanges: 'nein',
+    propertyContract: null,
+    landRegistry: null,
+    medicalExpenses: false,
+    medicalReceipts: null,
+    pharmacyExpenses: false,
+    pharmacyReceipts: null,
+    pensionFund: false,
+    pensionDoc: null
+  });
+
+  const steps = [
+    { id: 'anagrafik', title: 'Persönliches', icon: <Users className="w-5 h-5" /> },
+    { id: 'einkommen', title: 'Einkommen', icon: <TrendingUp className="w-5 h-5" /> },
+    { id: 'immobilien', title: 'Besitz & Mieten', icon: <Home className="w-5 h-5" /> },
+    { id: 'spesen', title: 'Spesen & Vorsorge', icon: <Stethoscope className="w-5 h-5" /> },
+    { id: 'review', title: 'Abschluss', icon: <CheckCircle className="w-5 h-5" /> }
+  ];
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleFileUpload = (name, files) => {
+    if (files && files[0]) {
+      setFormData(prev => ({
+        ...prev,
+        [name]: files[0]
+      }));
+    }
+  };
+
+  const isStepValid = () => {
+    if (currentStep === 0) {
+      return (
+        formData.fullName.trim() !== '' && 
+        formData.email.trim() !== '' && 
+        formData.privacyAccepted && 
+        formData.authenticityConfirmed
+      );
+    }
+    return true;
+  };
+
+  const FileUploadField = ({ label, name, condition = true, info }) => {
+    if (!condition) return null;
+    return (
+      <div className="mt-3 p-4 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 hover:border-teal-700 transition-colors">
+        <label className="block mb-2 text-sm font-semibold text-gray-700">
+          {label} {info && <span className="font-normal text-xs text-gray-500 italic">({info})</span>}
+        </label>
+        <div className="flex items-center gap-4">
+          <label 
+            className="flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 text-sm font-medium text-gray-700 shadow-sm transition-all"
+            style={{ borderColor: formData[name] ? brandColors.primary : undefined }}
+          >
+            <Upload className="w-4 h-4 mr-2" style={{ color: brandColors.primary }} />
+            Datei auswählen
+            <input type="file" className="hidden" onChange={(e) => handleFileUpload(name, e.target.files)} />
+          </label>
+          {formData[name] && (
+            <span className="text-sm flex items-center gap-1 font-medium truncate max-w-[200px]" style={{ color: brandColors.primary }}>
+              <CheckCircle className="w-4 h-4 shrink-0" /> {formData[name].name || 'Bereit'}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">Anagrafische Daten</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-600">Vor- und Nachname *</label>
+                <input name="fullName" value={formData.fullName} onChange={handleInputChange} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 outline-none" style={{ '--tw-ring-color': brandColors.primary }} placeholder="Max Mustermann" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-600">E-Mail Adresse *</label>
+                <input name="email" type="email" value={formData.email} onChange={handleInputChange} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 outline-none" style={{ '--tw-ring-color': brandColors.primary }} placeholder="max@beispiel.de" />
+              </div>
+            </div>
+            <FileUploadField label="Kopie des gültigen Ausweises" name="idCard" />
+            <div className="p-4 rounded-xl" style={{ backgroundColor: brandColors.primaryLight }}>
+              <p className="text-sm font-bold mb-3" style={{ color: brandColors.primary }}>Änderung des Wohnsitzes 2024/25?</p>
+              <div className="flex gap-6">
+                {['ja', 'nein'].map(opt => (
+                  <label key={opt} className="flex items-center gap-2 cursor-pointer font-medium">
+                    <input type="radio" name="residenceChanged" value={opt} checked={formData.residenceChanged === opt} onChange={handleInputChange} style={{ accentColor: brandColors.primary }} />
+                    <span className="capitalize">{opt}</span>
+                  </label>
+                ))}
+              </div>
+              <FileUploadField label="Meldung an die Gemeinde" name="residenceDoc" condition={formData.residenceChanged === 'ja'} />
+            </div>
+            <div className="space-y-4 pt-4 border-t">
+              <div className={`p-4 rounded-xl border-2 ${formData.privacyAccepted ? 'bg-white border-teal-200' : 'bg-red-50 border-red-100'}`}>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" name="privacyAccepted" checked={formData.privacyAccepted} onChange={handleInputChange} className="mt-1" style={{ accentColor: brandColors.primary }} />
+                  <div className="text-sm"><span className="font-bold block" style={{ color: brandColors.primary }}>Datenschutz *</span>Einwilligung zur Datenverarbeitung.</div>
+                </label>
+              </div>
+              <div className={`p-4 rounded-xl border-2 ${formData.authenticityConfirmed ? 'bg-white border-teal-200' : 'bg-red-50 border-red-100'}`}>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" name="authenticityConfirmed" checked={formData.authenticityConfirmed} onChange={handleInputChange} className="mt-1" style={{ accentColor: brandColors.primary }} />
+                  <div className="text-sm"><span className="font-bold block" style={{ color: brandColors.primary }}>Echtheitsbestätigung *</span>Bestätigung der Richtigkeit der Dokumente.</div>
+                </label>
+              </div>
+            </div>
+          </div>
+        );
+      case 1:
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">Einkommen 2024</h2>
+            <div className="p-6 border rounded-2xl bg-white">
+              <h3 className="font-bold flex items-center gap-2 mb-4 text-gray-700"><FileText style={{ color: brandColors.primary }} /> Bescheinigungen (CU)</h3>
+              <FileUploadField label="Mod. CU/2025" name="cuDoc" />
+              <FileUploadField label="Mod. CU/2025 INPS" name="inpsDoc" />
+            </div>
+          </div>
+        );
+      case 2:
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">Immobilien</h2>
+            <div className="flex gap-4">
+              {['ja', 'nein'].map(opt => (
+                <label key={opt} className={`flex-1 text-center p-4 border-2 rounded-2xl cursor-pointer ${formData.propertyChanges === opt ? 'border-teal-700 bg-teal-50 font-bold' : 'bg-white'}`}>
+                  <input type="radio" name="propertyChanges" value={opt} checked={formData.propertyChanges === opt} onChange={handleInputChange} className="hidden" />
+                  Änderungen Immobilien: {opt.toUpperCase()}
+                </label>
+              ))}
+            </div>
+            {formData.propertyChanges === 'ja' && (
+              <FileUploadField label="Vertrag / Katasterauszug" name="propertyContract" />
+            )}
+          </div>
+        );
+      case 4:
+        return (
+          <div className="text-center py-12">
+            <CheckCircle className="w-16 h-16 mx-auto mb-4" style={{ color: brandColors.primary }} />
+            <h2 className="text-3xl font-black">FERTIG</h2>
+            <p className="text-gray-500 mt-4">Bereit zur Übermittlung an Mutschlechner & Hellweger.</p>
+            <button className="mt-8 text-white px-10 py-4 rounded-2xl font-bold" style={{ backgroundColor: brandColors.primary }}>DATEN SENDEN</button>
+          </div>
+        );
+      default:
+        return <div className="p-10 text-center">In Bearbeitung...</div>;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8 flex flex-col items-center font-sans">
+      <div className="w-full max-w-4xl">
+        <header className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-black tracking-tighter" style={{ color: brandColors.primary }}>STEUER 2024</h1>
+          </div>
+          <div className="text-right border-l-2 pl-4 border-gray-200">
+            <div className="font-black text-sm" style={{ color: brandColors.primary }}>MUTSCHLECHNER & HELLWEGER</div>
+            <div className="text-[8px] uppercase tracking-widest text-gray-400">Bruneck | Innichen</div>
+          </div>
+        </header>
+
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col min-h-[500px]">
+          <main className="p-8 flex-grow">{renderStepContent()}</main>
+          <footer className="p-6 bg-gray-50 border-t flex justify-between items-center">
+            <button 
+              onClick={() => setCurrentStep(s => s - 1)} 
+              disabled={currentStep === 0}
+              className={`px-6 py-3 rounded-xl font-bold ${currentStep === 0 ? 'opacity-0' : 'text-gray-500 hover:bg-gray-100'}`}
+            >
+              Zurück
+            </button>
+            <button 
+              onClick={() => isStepValid() && setCurrentStep(s => s + 1)}
+              disabled={!isStepValid() || currentStep === steps.length - 1}
+              className="px-8 py-3 rounded-xl font-bold text-white transition-all disabled:opacity-30"
+              style={{ backgroundColor: brandColors.primary }}
+            >
+              Weiter
+            </button>
+          </footer>
+        </div>
+      </div>
+    </div>
+  );
+}
